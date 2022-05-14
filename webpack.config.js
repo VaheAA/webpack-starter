@@ -1,7 +1,3 @@
-/**
- * Webpack main configuration file
- */
-
 const path = require('path');
 const fs = require('fs');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
@@ -12,64 +8,80 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 const environment = require('./configuration/environment');
 
-const templateFiles = fs.readdirSync(environment.paths.source)
-  .filter((file) => ['.html', '.ejs'].includes(path.extname(file).toLowerCase())).map((filename) => ({
+const templateFiles = fs
+  .readdirSync(environment.paths.source)
+  .filter((file) =>
+    ['.html', '.ejs'].includes(path.extname(file).toLowerCase())
+  )
+  .map((filename) => ({
     input: filename,
-    output: filename.replace(/\.ejs$/, '.html'),
+    output: filename.replace(/\.ejs$/, '.html')
   }));
 
-const htmlPluginEntries = templateFiles.map((template) => new HTMLWebpackPlugin({
-  inject: true,
-  hash: false,
-  filename: template.output,
-  template: path.resolve(environment.paths.source, template.input),
-  favicon: path.resolve(environment.paths.source, 'images', 'favicon.ico'),
-}));
+const htmlPluginEntries = templateFiles.map(
+  (template) =>
+    new HTMLWebpackPlugin({
+      inject: true,
+      hash: false,
+      filename: template.output,
+      template: path.resolve(environment.paths.source, template.input),
+      favicon: path.resolve(
+        environment.paths.source,
+        'assets/images',
+        'favicon.ico'
+      )
+    })
+);
 
 module.exports = {
   entry: {
-    app: path.resolve(environment.paths.source, 'js', 'app.js'),
+    app: path.resolve(environment.paths.source, 'assets/js', 'app.js')
   },
   output: {
-    filename: 'js/[name].js',
-    path: environment.paths.output,
+    filename: 'assets/js/[name].js',
+    path: environment.paths.output
   },
   module: {
     rules: [
       {
-        test: /\.((c|sa|sc)ss)$/i,
-        use: [MiniCssExtractPlugin.loader, 'css-loader', 'postcss-loader', 'sass-loader'],
+        test: /\.scss$/,
+        use: [
+          MiniCssExtractPlugin.loader,
+          'css-loader',
+          'postcss-loader',
+          'sass-loader'
+        ]
       },
       {
         test: /\.js$/,
         exclude: /node_modules/,
-        use: ['babel-loader'],
+        use: ['babel-loader']
       },
       {
         test: /\.(png|gif|jpe?g|svg)$/i,
         type: 'asset',
         parser: {
           dataUrlCondition: {
-            maxSize: environment.limits.images,
-          },
+            maxSize: environment.limits.images
+          }
         },
         generator: {
-          filename: 'images/design/[name].[hash:6][ext]',
-        },
+          filename: 'assets/images/design/[name].[hash:6][ext]'
+        }
       },
       {
         test: /\.(eot|ttf|woff|woff2)$/,
         type: 'asset',
         parser: {
           dataUrlCondition: {
-            maxSize: environment.limits.images,
-          },
+            maxSize: environment.limits.images
+          }
         },
         generator: {
-          filename: 'images/design/[name].[hash:6][ext]',
-        },
-      },
-    ],
+          filename: 'assets/images/design/[name].[hash:6][ext]'
+        }
+      }
+    ]
   },
   optimization: {
     minimizer: [
@@ -91,45 +103,45 @@ module.exports = {
                   plugins: [
                     {
                       name: 'removeViewBox',
-                      active: false,
-                    },
-                  ],
-                },
-              ],
-            ],
-          },
-        },
-      }),
-    ],
+                      active: false
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        }
+      })
+    ]
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: 'css/[name].css',
+      filename: 'assets/css/[name].css'
     }),
     new CleanWebpackPlugin({
       verbose: true,
-      cleanOnceBeforeBuildPatterns: ['**/*', '!stats.json'],
+      cleanOnceBeforeBuildPatterns: ['**/*', '!stats.json']
     }),
     new CopyWebpackPlugin({
       patterns: [
         {
-          from: path.resolve(environment.paths.source, 'images', 'content'),
-          to: path.resolve(environment.paths.output, 'images', 'content'),
+          from: path.resolve(
+            environment.paths.source,
+            'assets/images',
+            'content'
+          ),
+          to: path.resolve(
+            environment.paths.output,
+            'assets/images',
+            'content'
+          ),
           toType: 'dir',
           globOptions: {
-            ignore: ['*.DS_Store', 'Thumbs.db'],
-          },
-        },
-        {
-          from: path.resolve(environment.paths.source, 'videos'),
-          to: path.resolve(environment.paths.output, 'videos'),
-          toType: 'dir',
-          globOptions: {
-            ignore: ['*.DS_Store', 'Thumbs.db'],
-          },
-        },
-      ],
-    }),
+            ignore: ['*.DS_Store', 'Thumbs.db']
+          }
+        }
+      ]
+    })
   ].concat(htmlPluginEntries),
-  target: 'web',
+  target: 'web'
 };
